@@ -78,9 +78,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
       >
         <div className="flex items-center gap-3 px-5 py-5 border-b border-white/10">
-          <div className="w-10 h-10 rounded-lg bg-gold-500 flex items-center justify-center text-navy-950 font-display font-bold text-lg shrink-0">
-            V
-          </div>
+          <img src="/logo.png" alt="Tha. Veymandoo Police" className="w-10 h-10 rounded-lg object-contain shrink-0" />
           <div className="min-w-0">
             <p className="font-display font-bold text-sm leading-tight text-white truncate">Tha. Veymandoo Police</p>
             <p className="text-xs text-navy-300 truncate">Chandhaa Management</p>

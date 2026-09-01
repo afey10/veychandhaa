@@ -1,6 +1,6 @@
 import { FormEvent, useState } from 'react'
 import { Navigate, useNavigate, Link } from 'react-router-dom'
-import { ShieldCheck, Eye, EyeOff, Loader2 } from 'lucide-react'
+import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
 export default function Login() {
@@ -43,9 +43,7 @@ export default function Login() {
 
       <div className="relative w-full max-w-md">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-gold-500 flex items-center justify-center text-navy-950 shadow-lg mb-4">
-            <ShieldCheck size={30} />
-          </div>
+          <img src="/logo.png" alt="Tha. Veymandoo Police" className="w-20 h-20 rounded-2xl object-contain shadow-lg mb-4" />
           <h1 className="text-white font-display font-bold text-xl text-center">Tha. Veymandoo Police</h1>
           <p className="text-navy-300 text-sm mt-1">Chandhaa Management System</p>
         </div>

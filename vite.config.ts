@@ -7,7 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
+      includeAssets: ['favicon.ico', 'favicon-32x32.png', 'apple-touch-icon.png'],
       manifest: {
         name: 'Tha. Veymandoo Police Chandhaa',
         short_name: 'Veymandoo Chandhaa',
