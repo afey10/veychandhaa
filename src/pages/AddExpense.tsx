@@ -6,6 +6,8 @@ import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import type { ExpenseCategory, PaymentMethod } from '../types'
 import { PageHeader } from '../components/ui'
+import ReceiptPicker from '../components/ReceiptPicker'
+import { uploadReceipt } from '../utils/receipts'
 
 export default function AddExpense() {
   const { profile } = useAuth()
@@ -24,6 +26,7 @@ export default function AddExpense() {
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
+  const [receiptFile, setReceiptFile] = useState<Blob | null>(null)
 
   useEffect(() => {
     supabase
@@ -57,6 +60,17 @@ export default function AddExpense() {
     if (!validate() || !profile) return
     setSubmitting(true)
 
+    let receiptUrl: string | null = null
+    if (receiptFile) {
+      try {
+        receiptUrl = await uploadReceipt(receiptFile)
+      } catch {
+        // The photo is optional — don't block saving the expense over it,
+        // just let the user know it wasn't attached.
+        showToast('Expense will be saved, but the receipt photo could not be uploaded.', 'error')
+      }
+    }
+
     const { error } = await supabase.from('expenses').insert({
       expense_date: form.expense_date,
       category_id: form.category_id,
@@ -65,6 +79,7 @@ export default function AddExpense() {
       payment_method: form.payment_method,
       reference_number: form.reference_number.trim() || null,
       remarks: form.remarks.trim() || null,
+      receipt_url: receiptUrl,
       created_by: profile.id
     })
 
@@ -133,6 +148,8 @@ export default function AddExpense() {
           <label className="label">Remarks</label>
           <textarea className="input" rows={3} value={form.remarks} onChange={(e) => update('remarks', e.target.value)} placeholder="Optional notes" />
         </div>
+
+        <ReceiptPicker onChange={setReceiptFile} />
 
         <div className="flex gap-3 pt-2">
           <button type="submit" className="btn-primary" disabled={submitting}>

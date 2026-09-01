@@ -89,11 +89,16 @@ create table if not exists public.expenses (
   payment_method payment_method not null default 'cash',
   reference_number text,
   remarks text,
+  receipt_url text,
   created_by uuid not null references public.profiles (id),
   updated_by uuid references public.profiles (id),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Adds the receipt photo column for databases created before this field
+-- existed; a no-op (and safe to re-run) on a fresh install.
+alter table public.expenses add column if not exists receipt_url text;
 
 create index if not exists idx_expenses_date on public.expenses (expense_date);
 create index if not exists idx_expenses_category on public.expenses (category_id);
@@ -386,7 +391,39 @@ create policy "audit_logs_insert_active_users"
   -- No update/delete policies -> audit logs are append-only for all roles.
 
 -- ---------------------------------------------------------------------
--- 10. Seed default expense categories
+-- 10. Storage — "receipts" bucket for optional bill/receipt photos
+--    Public bucket (read-only for anyone with the URL, same as any
+--    other public storage bucket) so receipt images can be shown
+--    directly with an <img> tag; write access is still gated by RLS
+--    below to staff/administrator accounts, matching the expenses table.
+-- ---------------------------------------------------------------------
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('receipts', 'receipts', true, 5242880, array['image/jpeg', 'image/png', 'image/webp'])
+on conflict (id) do update set public = true;
+
+drop policy if exists "receipts_select_active_users" on storage.objects;
+create policy "receipts_select_active_users"
+  on storage.objects for select
+  using (bucket_id = 'receipts' and public.is_authenticated_active_user());
+
+drop policy if exists "receipts_insert_staff_or_admin" on storage.objects;
+create policy "receipts_insert_staff_or_admin"
+  on storage.objects for insert
+  with check (bucket_id = 'receipts' and public.is_staff_or_admin());
+
+drop policy if exists "receipts_update_staff_or_admin" on storage.objects;
+create policy "receipts_update_staff_or_admin"
+  on storage.objects for update
+  using (bucket_id = 'receipts' and public.is_staff_or_admin())
+  with check (bucket_id = 'receipts' and public.is_staff_or_admin());
+
+drop policy if exists "receipts_delete_admin_only" on storage.objects;
+create policy "receipts_delete_admin_only"
+  on storage.objects for delete
+  using (bucket_id = 'receipts' and public.is_admin());
+
+-- ---------------------------------------------------------------------
+-- 11. Seed default expense categories
 -- ---------------------------------------------------------------------
 insert into public.expense_categories (name) values
   ('Food'), ('Transportation'), ('Station Activities'), ('Equipment'),

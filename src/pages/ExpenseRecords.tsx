@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Search, Pencil, Trash2, ChevronLeft, ChevronRight, ArrowUpDown } from 'lucide-react'
+import { Search, Pencil, Trash2, ChevronLeft, ChevronRight, ArrowUpDown, Receipt } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { formatMVR, MONTH_NAMES, type Expense, type ExpenseCategory, type PaymentMethod } from '../types'
 import { PageHeader, LoadingSpinner, EmptyState, ConfirmDialog, Modal } from '../components/ui'
+import ReceiptPicker from '../components/ReceiptPicker'
+import { uploadReceipt } from '../utils/receipts'
 
 const PAGE_SIZE = 10
 
@@ -136,6 +138,7 @@ export default function ExpenseRecords() {
                   </th>
                   <th className="th">Method</th>
                   <th className="th">Reference</th>
+                  <th className="th">Receipt</th>
                   <th className="th">Added By</th>
                   {canEdit && <th className="th text-right">Actions</th>}
                 </tr>
@@ -149,6 +152,20 @@ export default function ExpenseRecords() {
                     <td className="td font-semibold">{formatMVR(Number(r.amount))}</td>
                     <td className="td capitalize">{r.payment_method.replace('_', ' ')}</td>
                     <td className="td">{r.reference_number ?? '—'}</td>
+                    <td className="td">
+                      {r.receipt_url ? (
+                        <a
+                          href={r.receipt_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 text-navy-600 hover:text-navy-800 hover:underline"
+                        >
+                          <Receipt size={14} /> View
+                        </a>
+                      ) : (
+                        <span className="text-slate-300">—</span>
+                      )}
+                    </td>
                     <td className="td">{r.created_by_name}</td>
                     {canEdit && (
                       <td className="td">
@@ -213,6 +230,13 @@ function EditExpenseModal({
     remarks: record.remarks ?? ''
   })
   const [saving, setSaving] = useState(false)
+  const [receiptFile, setReceiptFile] = useState<Blob | null>(null)
+  const [receiptRemoved, setReceiptRemoved] = useState(false)
+
+  function handleReceiptChange(file: Blob | null) {
+    setReceiptFile(file)
+    if (!file) setReceiptRemoved(true)
+  }
 
   async function handleSave() {
     if (!form.description.trim() || Number(form.amount) <= 0) {
@@ -220,6 +244,18 @@ function EditExpenseModal({
       return
     }
     setSaving(true)
+
+    let receiptUrl: string | null | undefined = undefined // undefined = leave unchanged
+    if (receiptFile) {
+      try {
+        receiptUrl = await uploadReceipt(receiptFile)
+      } catch {
+        showToast('Changes will be saved, but the new receipt photo could not be uploaded.', 'error')
+      }
+    } else if (receiptRemoved) {
+      receiptUrl = null
+    }
+
     const { error } = await supabase
       .from('expenses')
       .update({
@@ -230,6 +266,7 @@ function EditExpenseModal({
         payment_method: form.payment_method as PaymentMethod,
         reference_number: form.reference_number.trim() || null,
         remarks: form.remarks.trim() || null,
+        ...(receiptUrl !== undefined ? { receipt_url: receiptUrl } : {}),
         updated_by: profile?.id
       })
       .eq('id', record.id)
@@ -283,6 +320,7 @@ function EditExpenseModal({
           <label className="label">Remarks</label>
           <textarea className="input" rows={2} value={form.remarks} onChange={(e) => setForm({ ...form, remarks: e.target.value })} />
         </div>
+        <ReceiptPicker existingUrl={record.receipt_url} onChange={handleReceiptChange} />
         <div className="flex gap-3 pt-2">
           <button className="btn-primary flex-1" onClick={handleSave} disabled={saving}>{saving ? 'Saving…' : 'Save Changes'}</button>
           <button className="btn-secondary flex-1" onClick={onClose} disabled={saving}>Cancel</button>

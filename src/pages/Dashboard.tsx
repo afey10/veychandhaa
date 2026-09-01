@@ -136,10 +136,9 @@ export default function Dashboard() {
       { label: 'Total Collection', value: totals.totalCollection, icon: Wallet, tone: 'bg-navy-50 text-navy-700' },
       { label: 'Total Expenses', value: totals.totalExpenses, icon: TrendingDown, tone: 'bg-rose-50 text-rose-700' },
       { label: 'Current Month Collection', value: totals.currentMonthCollection, icon: TrendingUp, tone: 'bg-emerald-50 text-emerald-700' },
-      { label: 'Current Month Expenses', value: totals.currentMonthExpenses, icon: CalendarDays, tone: 'bg-amber-50 text-amber-700' },
-      { label: 'Remaining Balance', value: balance, icon: PiggyBank, tone: 'bg-gold-50 text-gold-800' }
+      { label: 'Current Month Expenses', value: totals.currentMonthExpenses, icon: CalendarDays, tone: 'bg-amber-50 text-amber-700' }
     ],
-    [totals, balance]
+    [totals]
   )
 
   if (loading) return <LoadingSpinner label="Loading dashboard…" />
@@ -148,14 +147,26 @@ export default function Dashboard() {
     <div>
       <PageHeader title="Dashboard" description={`Financial overview · ${MONTH_NAMES[currentMonth - 1]} ${currentYear}`} />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 mb-6">
+      <div className="card bg-gradient-to-br from-gold-500 to-gold-600 border-0 shadow-card mb-4 sm:mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-lg bg-white/25 flex items-center justify-center shrink-0 text-navy-950">
+            <PiggyBank size={22} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-navy-950/70 uppercase tracking-wide">Remaining Balance</p>
+            <p className="text-2xl sm:text-3xl font-display font-bold text-navy-950 truncate">{formatMVR(balance)}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-6">
         {cards.map((c) => (
-          <div key={c.label} className="card">
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${c.tone}`}>
-              <c.icon size={20} />
+          <div key={c.label} className="card !p-3.5 sm:!p-5">
+            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center mb-2 sm:mb-3 ${c.tone}`}>
+              <c.icon size={18} />
             </div>
-            <p className="text-xs font-medium text-slate-500">{c.label}</p>
-            <p className="text-lg font-display font-bold text-navy-950 mt-1 truncate">{formatMVR(c.value)}</p>
+            <p className="text-[11px] sm:text-xs font-medium text-slate-500 leading-tight">{c.label}</p>
+            <p className="text-base sm:text-lg font-display font-bold text-navy-950 mt-1 truncate">{formatMVR(c.value)}</p>
           </div>
         ))}
       </div>

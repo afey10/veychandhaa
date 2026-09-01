@@ -48,6 +48,7 @@ export interface Expense {
   payment_method: PaymentMethod
   reference_number: string | null
   remarks: string | null
+  receipt_url: string | null
   created_by: string
   updated_by: string | null
   created_at: string

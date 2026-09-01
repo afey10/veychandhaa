@@ -52,7 +52,8 @@ Permissions are enforced in **two layers**:
 ### 3.2 Run the database schema
 1. In the Supabase Dashboard, open **SQL Editor → New query**.
 2. Paste the entire contents of `supabase/schema.sql` and click **Run**.
-3. This creates the `profiles`, `chandhaa`, `expenses`, `expense_categories`, and `audit_logs` tables, all indexes/constraints, helper functions, triggers, and **all RLS policies**. Default expense categories are seeded automatically.
+3. This creates the `profiles`, `chandhaa`, `expenses`, `expense_categories`, and `audit_logs` tables, all indexes/constraints, helper functions, triggers, and **all RLS policies**, plus a public `receipts` storage bucket for optional bill/receipt photos. Default expense categories are seeded automatically.
+4. Already have a project running from an earlier version of this schema? Re-running `schema.sql` is safe — it will add the new `receipt_url` column and the `receipts` bucket without touching your existing data.
 
 ### 3.3 Enable email/password authentication
 1. **Authentication → Providers → Email** should already be enabled by default.

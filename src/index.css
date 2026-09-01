@@ -5,6 +5,17 @@
 html { -webkit-text-size-adjust: 100%; }
 body { @apply bg-slate-50 text-slate-800 font-sans antialiased; }
 
+/* iOS Safari auto-zooms the page when a focused form field renders at
+   under 16px. Every input/select/textarea below 16px otherwise (e.g. the
+   14px .input class, or the compact table selects) gets bumped back up
+   to 16px only on touch-sized viewports, which is what was causing the
+   page to zoom in on login and on tapping any field to edit it. */
+@media screen and (max-width: 767px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
 @layer components {
   .card { @apply bg-white rounded-xl2 shadow-card border border-slate-100 p-5; }
   .btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed; }
